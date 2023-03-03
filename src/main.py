@@ -20,7 +20,7 @@ def write_events(events):
     df["write_timestamp_epoch"] = pd.to_datetime(df["write_timestamp"])
     df.sort_values(by="write_timestamp_epoch", inplace=True)
     df.to_json(f"../out/{now}.json", orient="records")
-    df.to_csv(f"../out/{now}.csv", index=False)
+    df.to_csv(f"../out/{now}.csv", index=False, escapechar="\\", doublequote=False)
     df.to_parquet(f"../out/{now}.parquet")
 
 

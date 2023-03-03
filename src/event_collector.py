@@ -12,5 +12,5 @@ class EventCollector:
         self.events = self.events + events
 
     def get_events(self):
-        return [(e.__dict__) for item in self.events for e in (item if isinstance(item, list) else [item])]
+        return [(e.format()) for item in self.events for e in (item if isinstance(item, list) else [item])]
 

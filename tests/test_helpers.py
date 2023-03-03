@@ -14,7 +14,7 @@ class TestHelpers:
     def test_pulse(self):
         starting_time = "2023-01-01T09:00:00+00:00"
         ending_time = "2023-01-01T09:10:00+00:00"
-        f = lambda x: x + 1
+        f = lambda x, **kwargs: x + 1
         result = pulse(
             f, starting_time, ending_time, x=2
         )

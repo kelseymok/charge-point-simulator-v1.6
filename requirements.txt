@@ -2,3 +2,4 @@ ocpp
 pandas
 freezegun
 fastparquet
+pytest
