@@ -12,7 +12,7 @@ def pulse(f_request: Callable, f_response: Callable, starting_time: str, ending_
             request = f_request(**kwargs, timestamp=now.isoformat())
             collect_requests.append((request, now.isoformat()))
             response_time = now + timedelta(seconds=1)
-            response = f_response(**kwargs, now=response_time)
+            response = f_response(**kwargs, now=response_time.isoformat())
             collect_responses.append((response, response_time.isoformat()))
             frozen_datetime.tick(freq)
 

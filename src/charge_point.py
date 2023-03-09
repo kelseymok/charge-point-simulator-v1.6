@@ -29,7 +29,10 @@ class ChargePoint:
     async def start(self):
         await asyncio.gather(
             self._boot(),
-            self._beat(self.on_time, self.off_time)
+            self._beat(
+                (parser.parse(self.on_time) + timedelta(minutes=1)).isoformat(),
+                self.off_time
+            )
         )
 
         transactions_config = [
@@ -83,4 +86,4 @@ class ChargePoint:
         return call.HeartbeatPayload().__dict__
 
     def _heartbeat_response(self, **kwargs):
-        return call_result.HeartbeatPayload(current_time=kwargs["now"])
+        return call_result.HeartbeatPayload(current_time=kwargs["now"]).__dict__

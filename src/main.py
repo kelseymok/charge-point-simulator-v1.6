@@ -15,7 +15,6 @@ transactions_storage = Transactions()
 
 def write_events(events):
     now = int(datetime.now(timezone.utc).timestamp())
-
     df = pd.DataFrame.from_records(events)
     df["write_timestamp_epoch"] = pd.to_datetime(df["write_timestamp"])
     df.sort_values(by="write_timestamp_epoch", inplace=True)

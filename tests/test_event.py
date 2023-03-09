@@ -20,5 +20,9 @@ class TestEvent:
             "charge_point_id": "123",
             "write_timestamp": "2023-01-01T09:00:00+00:00",
         }
-        assert json.dumps(result) == '{"message_type": "2", "charge_point_id": "123", "action": "Heartbeat", "write_timestamp": "2023-01-01T09:00:00+00:00", "body": "{}"}'
+        assert json.dumps(result) == '{"message_type": 2, "charge_point_id": "123", "action": "Heartbeat", "write_timestamp": "2023-01-01T09:00:00+00:00", "body": "{}"}'
 
+
+class TestMessageType:
+    def test_message_type(self):
+        assert MessageType.request.value == 2
