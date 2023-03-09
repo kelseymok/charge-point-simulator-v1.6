@@ -1,12 +1,15 @@
 import uuid
 import random
+from datetime import timedelta
 
-from event import Event
+from attr import asdict
+
+from event import Event, MessageType
 from helpers import pulse
 
-from ocpp.v16 import call
-from ocpp.v16.datatypes import SampledValue, MeterValue
-from ocpp.v16.enums import ReadingContext, ValueFormat, Measurand, Phase, UnitOfMeasure
+from ocpp.v16 import call, call_result
+from ocpp.v16.datatypes import SampledValue, MeterValue, IdTagInfo
+from ocpp.v16.enums import ReadingContext, ValueFormat, Measurand, Phase, UnitOfMeasure, AuthorizationStatus
 import json
 from dateutil import parser
 from dateutil.relativedelta import *
@@ -25,9 +28,9 @@ class Transaction:
         self.id_tag = id_tag
 
     def start(self):
-        collect = [self._start()]
+        collect = self._start()
         collect = collect + self._meter_values_pulse()
-        collect = collect + [self._stop()]
+        collect = collect + self._stop()
 
         return collect
 
@@ -36,33 +39,61 @@ class Transaction:
         return self.meter_current
 
     def _start(self):
-        return Event(
-            charge_point_id=self.charge_point_id,
-            action="StartTransaction",
-            body=self._start_transaction(),
-            write_timestamp=self.start_time
+        action = "StartTransaction"
+        requests, responses = pulse(
+            f_request=self._start_transaction_request,
+            f_response=self._start_transaction_response,
+            starting_time=self.start_time,
+            ending_time=(parser.parse(self.start_time) + timedelta(seconds=1)).isoformat(),
+            connector_id=self.connector,
+            transaction_id=self.transaction_id,
+            power_import=float(random.randint(1330, 1800)),
         )
+        collect = []
+        collect = collect + [
+            Event(message_type=MessageType.request, charge_point_id=self.charge_point_id, action=action, body=x[0],
+                  write_timestamp=x[1]) for x in requests]
+        collect = collect + [
+            Event(message_type=MessageType.successful_response, charge_point_id=self.charge_point_id, action=action,
+                  body=x[0], write_timestamp=x[1]) for x in responses]
+
+        return collect
 
     def _stop(self):
-        return Event(
-            charge_point_id=self.charge_point_id,
-            action="StopTransaction",
-            body=self._stop_transaction(),
-            write_timestamp=self.stop_time
+        action = "StopTransaction"
+        requests, responses = pulse(
+            f_request=self._stop_transaction_request,
+            f_response=self._stop_transaction_response,
+            starting_time=self.stop_time,
+            ending_time=(parser.parse(self.stop_time) + timedelta(minutes=1)).isoformat(),
+            connector_id=self.connector,
+            transaction_id=self.transaction_id,
+            power_import=float(random.randint(1330, 1800)),
         )
 
+        collect = []
+        collect = collect + [Event(message_type=MessageType.request, charge_point_id=self.charge_point_id, action=action, body=x[0], write_timestamp=x[1]) for x in requests]
+        collect = collect + [Event(message_type=MessageType.successful_response, charge_point_id=self.charge_point_id, action=action, body=x[0], write_timestamp=x[1]) for x in responses]
+
+        return collect
+
     def _meter_values_pulse(self):
-        meter_values = pulse(
-                f=self._meter_values,
+        action = "MeterValues"
+        requests, responses = pulse(
+                f_request=self._meter_values_request,
+                f_response=self._meter_values_response,
                 starting_time=(parser.parse(self.start_time) + relativedelta(minutes=+1)).isoformat(),
                 ending_time=self.stop_time,
                 connector_id=self.connector,
                 transaction_id=self.transaction_id,
                 power_import=float(random.randint(1330, 1800)),
             )
-        return [Event(charge_point_id=self.charge_point_id, action="MeterValues", body=v[0], write_timestamp=v[1]) for v in meter_values]
+        collect = []
+        collect = collect + [Event(message_type=MessageType.request, charge_point_id=self.charge_point_id, action=action, body=v[0], write_timestamp=v[1]) for v in requests]
+        collect = collect + [Event(message_type=MessageType.successful_response, charge_point_id=self.charge_point_id, action=action, body=v[0], write_timestamp=v[1]) for v in responses]
+        return collect
 
-    def _start_transaction(self):
+    def _start_transaction_request(self, **kwargs):
         return call.StartTransactionPayload(
             connector_id=self.connector,
             id_tag=self.id_tag,
@@ -70,7 +101,13 @@ class Transaction:
             timestamp=self.start_time
         ).__dict__
 
-    def _stop_transaction(self):
+    def _start_transaction_response(self, **kwargs):
+        return call_result.StartTransactionPayload(
+            id_tag_info=IdTagInfo(parent_id_tag=self.id_tag, status=AuthorizationStatus.accepted).__dict__,
+            transaction_id=self.transaction_id
+        ).__dict__
+
+    def _stop_transaction_request(self, **kwargs):
         return call.StopTransactionPayload(
             timestamp=self.stop_time,
             meter_stop=self.meter_stop,
@@ -78,11 +115,16 @@ class Transaction:
             id_tag=self.id_tag,
         ).__dict__
 
+    def _stop_transaction_response(self, **kwargs):
+        return call_result.StopTransactionPayload(
+            id_tag_info=IdTagInfo(parent_id_tag=self.id_tag, status=AuthorizationStatus.accepted).__dict__,
+        ).__dict__
+
     def _add_noise(self, noise_range: float, base: float) -> float:
         noise = random.uniform(noise_range*-1, noise_range)
         return round(base + noise, 2)
 
-    def _meter_values(self, **kwargs):
+    def _meter_values_request(self, **kwargs):
         noisy_power_import = self._add_noise(20.0, kwargs["power_import"])
         noisy_current_import = self._add_noise(2.0, 6.0)
         sampled_values = [
@@ -192,3 +234,6 @@ class Transaction:
             meter_value=[json.loads(json.dumps(meter_value.__dict__))]
         ).__dict__
         return meter_values
+
+    def _meter_values_response(self, **kwargs):
+        return call_result.MeterValuesPayload().__dict__

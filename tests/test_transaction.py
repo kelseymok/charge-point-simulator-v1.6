@@ -1,6 +1,8 @@
 import random
 
-from event import Event
+from ocpp.v16.enums import AuthorizationStatus
+
+from event import Event, MessageType
 from transaction import Transaction
 
 
@@ -30,8 +32,17 @@ class TestTransaction:
         )
         result = t.start()
         assert t.meter_current > 0
-        assert len(result) == 4
-        assert [x.action for x in result] == ["StartTransaction", "MeterValues", "MeterValues", "StopTransaction"]
+        assert len(result) == 8
+        assert [(x.message_type, x.action) for x in result] == [
+            (MessageType.request, "StartTransaction"),
+            (MessageType.successful_response, "StartTransaction"),
+            (MessageType.request,"MeterValues"),
+            (MessageType.request,"MeterValues"),
+            (MessageType.successful_response, "MeterValues"),
+            (MessageType.successful_response, "MeterValues"),
+            (MessageType.request, "StopTransaction"),
+            (MessageType.successful_response, "StopTransaction"),
+        ]
 
     def test__start(self):
         t = Transaction(
@@ -43,7 +54,9 @@ class TestTransaction:
             id_tag="201e331c-a315-45d7-b43a-e2bc931b9981",
         )
         result = t._start()
-        assert result.__dict__ == Event(
+        assert len(result) == 2
+        assert result[0].__dict__ == Event(
+            message_type=MessageType.request,
             charge_point_id="123",
             action="StartTransaction",
             body={
@@ -54,6 +67,20 @@ class TestTransaction:
                 "reservation_id": None
             },
             write_timestamp="2022-01-01T08:00:00+00:00"
+        ).__dict__
+        assert result[1].__dict__ == Event(
+            message_type=MessageType.successful_response,
+            charge_point_id="123",
+            action="StartTransaction",
+            body={
+                "transaction_id": 1,
+                "id_tag_info": {
+                    "status": AuthorizationStatus.accepted,
+                    "parent_id_tag": "201e331c-a315-45d7-b43a-e2bc931b9981",
+                    "expiry_date": None
+                }
+            },
+            write_timestamp="2022-01-01T08:00:01+00:00"
         ).__dict__
 
     def test__stop(self):
@@ -66,7 +93,8 @@ class TestTransaction:
             id_tag="201e331c-a315-45d7-b43a-e2bc931b9981",
         )
         result = t._stop()
-        assert result.__dict__ == Event(
+        assert result[0].__dict__ == Event(
+            message_type=MessageType.request,
             charge_point_id="123",
             action="StopTransaction",
             body={
@@ -79,6 +107,19 @@ class TestTransaction:
             },
             write_timestamp="2022-01-01T09:00:00+00:00"
         ).__dict__
+        assert result[1].__dict__ == Event(
+            message_type=MessageType.successful_response,
+            charge_point_id="123",
+            action="StopTransaction",
+            body={
+                "id_tag_info": {
+                    "expiry_date": None,
+                    "parent_id_tag": "201e331c-a315-45d7-b43a-e2bc931b9981",
+                    "status": AuthorizationStatus.accepted
+                }
+            },
+            write_timestamp="2022-01-01T09:00:01+00:00"
+        ).__dict__
 
     def test__meter_values_pulse(self):
         t = Transaction(
@@ -90,8 +131,15 @@ class TestTransaction:
             id_tag="201e331c-a315-45d7-b43a-e2bc931b9981",
         )
         result = t._meter_values_pulse()
-        assert len(result) == 3
-        assert [x.action for x in result] == ["MeterValues", "MeterValues", "MeterValues"]
+        assert len(result) == 6
+        assert [(x.message_type, x.action) for x in result] == [
+            (MessageType.request, "MeterValues"),
+            (MessageType.request, "MeterValues"),
+            (MessageType.request, "MeterValues"),
+            (MessageType.successful_response, "MeterValues"),
+            (MessageType.successful_response, "MeterValues"),
+            (MessageType.successful_response, "MeterValues"),
+        ]
 
     def test__start_transaction(self):
         t = Transaction(
@@ -102,7 +150,7 @@ class TestTransaction:
             stop_time="2022-01-01T08:15:00+00:00",
             id_tag="201e331c-a315-45d7-b43a-e2bc931b9981",
         )
-        result = t._start_transaction()
+        result = t._start_transaction_request()
         assert result == {
             "connector_id": 1,
             "id_tag": "201e331c-a315-45d7-b43a-e2bc931b9981",
@@ -120,7 +168,7 @@ class TestTransaction:
             stop_time="2022-01-01T08:15:00+00:00",
             id_tag="201e331c-a315-45d7-b43a-e2bc931b9981",
         )
-        result = t._stop_transaction()
+        result = t._stop_transaction_request()
         assert result == {
             "id_tag": "201e331c-a315-45d7-b43a-e2bc931b9981",
             "meter_stop": 0,
@@ -153,7 +201,7 @@ class TestTransaction:
             stop_time="2022-01-01T08:15:00+00:00",
             id_tag="201e331c-a315-45d7-b43a-e2bc931b9981",
         )
-        result = t._meter_values(power_import=1000, connector_id=1, transaction_id=1, timestamp="2023-01-01T08:00:00+00:00")
+        result = t._meter_values_request(power_import=1000, connector_id=1, transaction_id=1, timestamp="2023-01-01T08:00:00+00:00")
         assert result == {
             "connector_id": 1,
             "meter_value": [

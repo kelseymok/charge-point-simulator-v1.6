@@ -55,7 +55,6 @@ class TestTransctions():
         )
         transactions_storage.add_transactions([transaction_config_b, transaction_config_a])
         result = transactions_storage.sort_transactions()
-        print(result)
         assert result == [
             TransactionConfig(
                 charge_point_id="123",
@@ -92,6 +91,6 @@ class TestTransctions():
         result = transactions_storage.played_transactions
         assert len(result) == 2
         last_transaction = result[1]
-        assert len(last_transaction) == 3
+        assert len(last_transaction) == 6
         assert last_transaction[2].body["transaction_id"] == 2
         assert transactions_storage.played is True
