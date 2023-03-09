@@ -1,5 +1,7 @@
 from unittest.mock import Mock
 
+from event import MessageType
+
 from charge_point import ChargePoint
 from unittest import IsolatedAsyncioTestCase
 
@@ -35,8 +37,19 @@ class TestChargePoint(IsolatedAsyncioTestCase):
         assert len(transactions_storage.add_transactions.call_args_list[0][0][0]) == 1
         event_collector_nested_calls = [c[0][0] for c in event_collector.add_events.call_args_list]
         event_collector_calls = [item for sublist in event_collector_nested_calls for item in sublist]
-        assert len(event_collector_calls) == 5
-        assert [x.action for x in event_collector_calls] == ["BootNotification", "HeartBeat", "HeartBeat", "HeartBeat", "HeartBeat"]
+        assert len(event_collector_calls) == 10
+        assert [(x.message_type, x.action) for x in event_collector_calls] == [
+            (MessageType.request, "BootNotification"),
+            (MessageType.successful_response, "BootNotification"),
+            (MessageType.request, "HeartBeat"),
+            (MessageType.request, "HeartBeat"),
+            (MessageType.request, "HeartBeat"),
+            (MessageType.request, "HeartBeat"),
+            (MessageType.successful_response, "HeartBeat"),
+            (MessageType.successful_response, "HeartBeat"),
+            (MessageType.successful_response, "HeartBeat"),
+            (MessageType.successful_response, "HeartBeat")
+        ]
 
     async def test__beat(self):
         transactions_storage = Mock(Transactions)
