@@ -1,5 +1,6 @@
 import random
 
+from event import MessageType
 from generator_config import TransactionConfig, TransactionSessionConfig
 from transactions import Transactions
 
@@ -167,6 +168,24 @@ class TestTransctions:
         result = transactions_storage.played_transactions
         assert len(result) == 2
         last_transaction = result[1]
-        assert len(last_transaction) == 6
-        assert last_transaction[2].body["transaction_id"] == 2
+        assert len(last_transaction) == 16
+        assert [(x.message_type, x.action, x.write_timestamp) for x in last_transaction] == [
+            (MessageType.request, "StartTransaction", "2022-01-01T13:00:00+00:00"),
+            (MessageType.successful_response, "StartTransaction", "2022-01-01T13:00:01+00:00"),
+            (MessageType.request, "StatusNotification", "2022-01-01T13:00:00+00:00"),
+            (MessageType.successful_response, "StatusNotification", "2022-01-01T13:00:01+00:00"),
+            (MessageType.request, "StatusNotification", "2022-01-01T13:00:00+00:00"),
+            (MessageType.successful_response, "StatusNotification", "2022-01-01T13:00:01+00:00"),
+            (MessageType.request, "MeterValues", "2022-01-01T13:00:02+00:00"),
+            (MessageType.request, "MeterValues", "2022-01-01T13:05:02+00:00"),
+            (MessageType.successful_response, "MeterValues", "2022-01-01T13:00:03+00:00"),
+            (MessageType.successful_response, "MeterValues", "2022-01-01T13:05:03+00:00"),
+            (MessageType.request, "StatusNotification", "2022-01-01T13:06:00+00:00"),
+            (MessageType.successful_response, "StatusNotification", "2022-01-01T13:06:01+00:00"),
+            (MessageType.request, "StopTransaction", "2022-01-01T13:06:00+00:00"),
+            (MessageType.successful_response, "StopTransaction", "2022-01-01T13:06:01+00:00"),
+            (MessageType.request, "StatusNotification", "2022-01-01T13:00:00+00:00"),
+            (MessageType.successful_response, "StatusNotification","2022-01-01T13:00:01+00:00")
+        ]
+        assert last_transaction[-4].__dict__["body"]["transaction_id"] == 2
         assert transactions_storage.played is True
