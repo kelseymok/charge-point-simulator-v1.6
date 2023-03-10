@@ -1,4 +1,4 @@
-from transaction_config import TransactionConfig
+from generator_config import TransactionConfig, TransactionSessionConfig
 
 
 class TestTransactionConfig:
@@ -8,6 +8,12 @@ class TestTransactionConfig:
             "connector": 1,
             "start_time": "2022-01-01 08:05:00",
             "stop_time": "2022-01-01 10:15:00",
+            "sessions": [
+                TransactionSessionConfig(
+                    start_time="2022-01-01 08:05:00",
+                    stop_time="2022-01-01 10:15:00",
+                )
+            ]
         }
 
         result = TransactionConfig(**config)

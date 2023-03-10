@@ -4,7 +4,7 @@ from ocpp.v16.enums import AuthorizationStatus
 
 from event import Event, MessageType
 from transaction import Transaction
-
+from generator_config import TransactionSessionConfig
 
 class TestTransaction:
 
@@ -16,6 +16,12 @@ class TestTransaction:
             start_time="2022-01-01T08:00:00+00:00",
             stop_time="2022-01-01T09:00:00+00:00",
             id_tag="201e331c-a315-45d7-b43a-e2bc931b9981",
+            sessions=[
+                TransactionSessionConfig(
+                    start_time="2022-01-01T08:00:00+00:00",
+                    stop_time="2022-01-01T09:00:00+00:00",
+                )
+            ]
         )
         t._increase_meter(power_import=1000)
         assert t.meter_current == 1000
@@ -28,7 +34,13 @@ class TestTransaction:
             connector=1,
             charge_point_id="123",
             start_time="2022-01-01T08:00:00+00:00",
-            stop_time="2022-01-01T08:10:00+00:00"
+            stop_time="2022-01-01T08:10:00+00:00",
+            sessions=[
+                TransactionSessionConfig(
+                    start_time="2022-01-01T08:00:00+00:00",
+                    stop_time="2022-01-01T08:10:00+00:00",
+                )
+            ]
         )
         result = t.start()
         assert t.meter_current > 0
@@ -52,6 +64,12 @@ class TestTransaction:
             start_time="2022-01-01T08:00:00+00:00",
             stop_time="2022-01-01T09:00:00+00:00",
             id_tag="201e331c-a315-45d7-b43a-e2bc931b9981",
+            sessions=[
+                TransactionSessionConfig(
+                    start_time="2022-01-01T08:00:00+00:00",
+                    stop_time="2022-01-01T09:00:00+00:00",
+                )
+            ]
         )
         result = t._start()
         assert len(result) == 2
@@ -91,6 +109,12 @@ class TestTransaction:
             start_time="2022-01-01T08:00:00+00:00",
             stop_time="2022-01-01T09:00:00+00:00",
             id_tag="201e331c-a315-45d7-b43a-e2bc931b9981",
+            sessions=[
+                TransactionSessionConfig(
+                    start_time="2022-01-01T08:00:00+00:00",
+                    stop_time="2022-01-01T09:00:00+00:00",
+                )
+            ]
         )
         result = t._stop()
         assert result[0].__dict__ == Event(
@@ -129,6 +153,12 @@ class TestTransaction:
             start_time="2022-01-01T08:00:00+00:00",
             stop_time="2022-01-01T08:15:00+00:00",
             id_tag="201e331c-a315-45d7-b43a-e2bc931b9981",
+            sessions=[
+                TransactionSessionConfig(
+                    start_time="2022-01-01T08:00:00+00:00",
+                    stop_time="2022-01-01T08:15:00+00:00",
+                )
+            ]
         )
         result = t._meter_values_pulse()
         assert len(result) == 6
@@ -141,6 +171,43 @@ class TestTransaction:
             (MessageType.successful_response, "MeterValues"),
         ]
 
+    def test__meter_values_pulse_multiple_sessions(self):
+        random.seed(10)
+        t = Transaction(
+            id=1,
+            connector=1,
+            charge_point_id="123",
+            start_time="2022-01-01T08:00:00+00:00",
+            stop_time="2022-01-01T09:00:00+00:00",
+            id_tag="201e331c-a315-45d7-b43a-e2bc931b9981",
+            sessions=[
+                TransactionSessionConfig(
+                    start_time="2022-01-01T08:00:00+00:00",
+                    stop_time="2022-01-01T08:15:00+00:00",
+                ),
+                TransactionSessionConfig(
+                    start_time="2022-01-01T08:45:00+00:00",
+                    stop_time="2022-01-01T09:00:00+00:00",
+                ),
+            ]
+        )
+        result = t._meter_values_pulse()
+        assert len(result) == 12
+        assert [(x.message_type, x.action, x.write_timestamp) for x in result] == [
+            (MessageType.request, "MeterValues", "2022-01-01T08:01:00+00:00"),
+            (MessageType.request, "MeterValues", "2022-01-01T08:06:00+00:00"),
+            (MessageType.request, "MeterValues", "2022-01-01T08:11:00+00:00"),
+            (MessageType.successful_response, "MeterValues", "2022-01-01T08:01:01+00:00"),
+            (MessageType.successful_response, "MeterValues", "2022-01-01T08:06:01+00:00"),
+            (MessageType.successful_response, "MeterValues", "2022-01-01T08:11:01+00:00"),
+            (MessageType.request, "MeterValues", "2022-01-01T08:46:00+00:00"),
+            (MessageType.request, "MeterValues", "2022-01-01T08:51:00+00:00"),
+            (MessageType.request, "MeterValues", "2022-01-01T08:56:00+00:00"),
+            (MessageType.successful_response, "MeterValues", "2022-01-01T08:46:01+00:00"),
+            (MessageType.successful_response, "MeterValues", "2022-01-01T08:51:01+00:00"),
+            (MessageType.successful_response, "MeterValues", "2022-01-01T08:56:01+00:00"),
+        ]
+
     def test__start_transaction(self):
         t = Transaction(
             id=1,
@@ -149,6 +216,12 @@ class TestTransaction:
             start_time="2022-01-01T08:00:00+00:00",
             stop_time="2022-01-01T08:15:00+00:00",
             id_tag="201e331c-a315-45d7-b43a-e2bc931b9981",
+            sessions=[
+                TransactionSessionConfig(
+                    start_time="2022-01-01T08:00:00+00:00",
+                    stop_time="2022-01-01T08:15:00+00:00",
+                )
+            ]
         )
         result = t._start_transaction_request()
         assert result == {
@@ -167,6 +240,12 @@ class TestTransaction:
             start_time="2022-01-01T08:00:00+00:00",
             stop_time="2022-01-01T08:15:00+00:00",
             id_tag="201e331c-a315-45d7-b43a-e2bc931b9981",
+            sessions=[
+                TransactionSessionConfig(
+                    start_time="2022-01-01T08:00:00+00:00",
+                    stop_time="2022-01-01T08:15:00+00:00",
+                )
+            ]
         )
         result = t._stop_transaction_request()
         assert result == {
@@ -187,6 +266,12 @@ class TestTransaction:
             start_time="2022-01-01T08:00:00+00:00",
             stop_time="2022-01-01T08:15:00+00:00",
             id_tag="201e331c-a315-45d7-b43a-e2bc931b9981",
+            sessions=[
+                TransactionSessionConfig(
+                    start_time="2022-01-01T08:00:00+00:00",
+                    stop_time="2022-01-01T08:15:00+00:00",
+                )
+            ]
         )
         result = t._add_noise(3, 10)
         assert result == 10.43
@@ -200,6 +285,12 @@ class TestTransaction:
             start_time="2022-01-01T08:00:00+00:00",
             stop_time="2022-01-01T08:15:00+00:00",
             id_tag="201e331c-a315-45d7-b43a-e2bc931b9981",
+            sessions=[
+                TransactionSessionConfig(
+                    start_time="2022-01-01T08:00:00+00:00",
+                    stop_time="2022-01-01T08:15:00+00:00",
+                )
+            ]
         )
         result = t._meter_values_request(power_import=1000, connector_id=1, transaction_id=1, timestamp="2023-01-01T08:00:00+00:00")
         assert result == {
@@ -321,3 +412,4 @@ class TestTransaction:
         ],
         "transaction_id": 1
     }
+

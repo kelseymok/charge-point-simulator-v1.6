@@ -6,7 +6,7 @@ from charge_point import ChargePoint
 from unittest import IsolatedAsyncioTestCase
 
 from event_collector import EventCollector
-from generator_config import ChargePointConfiguration, ChargePointTransactionConfig
+from generator_config import ChargePointConfiguration, ChargePointTransactionConfig, TransactionSessionConfig
 from transactions import Transactions
 
 
@@ -26,6 +26,10 @@ class TestChargePoint(IsolatedAsyncioTestCase):
                     connector=1,
                     start_time="2023-01-01T08:04:00+00:00",
                     stop_time="2023-01-01T08:15:00+00:00",
+                    sessions=[TransactionSessionConfig(
+                        start_time="2023-01-01T08:04:00+00:00",
+                        stop_time="2023-01-01T08:15:00+00:00",
+                    )]
                 )]
         )
         cp = ChargePoint(
@@ -65,6 +69,10 @@ class TestChargePoint(IsolatedAsyncioTestCase):
                     connector=1,
                     start_time="2023-01-01T08:04:00+00:00",
                     stop_time="2023-01-01T08:15:00+00:00",
+                    sessions=[TransactionSessionConfig(
+                        start_time="2023-01-01T08:04:00+00:00",
+                        stop_time="2023-01-01T08:06:00+00:00"
+                    )]
             )]
         )
         cp = ChargePoint(
@@ -88,6 +96,12 @@ class TestChargePoint(IsolatedAsyncioTestCase):
                     connector=1,
                     start_time="2023-01-01T08:04:00+00:00",
                     stop_time="2023-01-01T08:15:00+00:00",
+                    sessions=[
+                        TransactionSessionConfig(
+                            start_time="2023-01-01T08:04:00+00:00",
+                            stop_time="2023-01-01T08:15:00+00:00"
+                        )
+                    ]
                 )]
         )
         cp = ChargePoint(

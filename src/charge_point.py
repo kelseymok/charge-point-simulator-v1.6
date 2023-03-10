@@ -1,13 +1,15 @@
 import asyncio
+from typing import List
+
 from ocpp.v16 import call, call_result
 from ocpp.v16.enums import RegistrationStatus
 
 from event import Event, MessageType
 from event_collector import EventCollector
 from helpers import pulse
-from transaction_config import TransactionConfig
+from generator_config import TransactionConfig
 from transactions import Transactions
-from generator_config import ChargePointConfiguration
+from generator_config import ChargePointConfiguration, ChargePointTransactionConfig
 from dateutil import parser
 from datetime import timedelta
 
@@ -26,6 +28,16 @@ class ChargePoint:
         self.off_time = config.off_time
         self.transactions_config = config.transactions
 
+    def _build_transactions(self):
+        collect = []
+        for c in self.transactions_config:
+            collect = collect + [TransactionConfig(
+                charge_point_id=self.serial_number,
+                **c.__dict__
+            )]
+
+        self.transactions_storage.add_transactions(collect)
+
     async def start(self):
         await asyncio.gather(
             self._boot(),
@@ -35,17 +47,8 @@ class ChargePoint:
             )
         )
 
-        transactions_config = [
-            TransactionConfig(
-                charge_point_id=self.serial_number,
-                connector=t.connector,
-                start_time=t.start_time,
-                stop_time=t.stop_time
-            )
-            for t in self.transactions_config
-        ]
+        self._build_transactions()
 
-        self.transactions_storage.add_transactions(transactions_config)
 
     async def _boot(self):
         action = "BootNotification"

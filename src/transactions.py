@@ -1,8 +1,8 @@
 from dateutil import parser
 from typing import List
 
+from generator_config import TransactionConfig
 from transaction import Transaction
-from transaction_config import TransactionConfig
 
 
 class Transactions:

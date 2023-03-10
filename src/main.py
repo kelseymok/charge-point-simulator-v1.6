@@ -8,8 +8,6 @@ from event_collector import EventCollector
 from transactions import Transactions
 from config import charge_point_config
 
-num_charge_points = 2
-
 transactions_storage = Transactions()
 
 

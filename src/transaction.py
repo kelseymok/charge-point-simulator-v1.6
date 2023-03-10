@@ -1,10 +1,12 @@
 import uuid
 import random
 from datetime import timedelta
+from typing import List
 
 from attr import asdict
 
 from event import Event, MessageType
+from generator_config import TransactionSessionConfig
 from helpers import pulse
 
 from ocpp.v16 import call, call_result
@@ -16,7 +18,7 @@ from dateutil.relativedelta import *
 
 
 class Transaction:
-    def __init__(self, id: int, connector: int, charge_point_id: str, start_time: str, stop_time: str, id_tag: str=str(uuid.uuid4())):
+    def __init__(self, id: int, connector: int, charge_point_id: str, start_time: str, stop_time: str, sessions: List[TransactionSessionConfig], id_tag: str=str(uuid.uuid4())):
         self.charge_point_id = charge_point_id
         self.connector = connector
         self.transaction_id = id
@@ -26,6 +28,7 @@ class Transaction:
         self.start_time = start_time
         self.stop_time = stop_time
         self.id_tag = id_tag
+        self.sessions = sessions
 
     def start(self):
         collect = self._start()
@@ -79,18 +82,19 @@ class Transaction:
 
     def _meter_values_pulse(self):
         action = "MeterValues"
-        requests, responses = pulse(
+        collect = []
+        for s in self.sessions:
+            requests, responses = pulse(
                 f_request=self._meter_values_request,
                 f_response=self._meter_values_response,
-                starting_time=(parser.parse(self.start_time) + relativedelta(minutes=+1)).isoformat(),
-                ending_time=self.stop_time,
+                starting_time=(parser.parse(s.start_time) + relativedelta(minutes=+1)).isoformat(),
+                ending_time=s.stop_time,
                 connector_id=self.connector,
                 transaction_id=self.transaction_id,
                 power_import=float(random.randint(1330, 1800)),
             )
-        collect = []
-        collect = collect + [Event(message_type=MessageType.request, charge_point_id=self.charge_point_id, action=action, body=v[0], write_timestamp=v[1]) for v in requests]
-        collect = collect + [Event(message_type=MessageType.successful_response, charge_point_id=self.charge_point_id, action=action, body=v[0], write_timestamp=v[1]) for v in responses]
+            collect = collect + [Event(message_type=MessageType.request, charge_point_id=self.charge_point_id, action=action, body=v[0], write_timestamp=v[1]) for v in requests]
+            collect = collect + [Event(message_type=MessageType.successful_response, charge_point_id=self.charge_point_id, action=action, body=v[0], write_timestamp=v[1]) for v in responses]
         return collect
 
     def _start_transaction_request(self, **kwargs):
