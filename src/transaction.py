@@ -42,13 +42,13 @@ class Transaction:
     def _start(self):
         collect_all = []
 
-        def _pulse_start(delay_seconds: int):
+        def _pulse_start(delay_seconds: int=0):
             action = "StartTransaction"
             requests, responses = pulse(
                 f_request=self._start_transaction_request,
                 f_response=self._start_transaction_response,
-                starting_time=self.start_time,
-                ending_time=(parser.parse(self.start_time) + timedelta(seconds=delay_seconds)).isoformat(),
+                starting_time=(parser.parse(self.start_time) + timedelta(seconds=delay_seconds)).isoformat(),
+                ending_time=(parser.parse(self.start_time) + timedelta(seconds=delay_seconds+1)).isoformat(), # can this be a default (+1 secs for single pulse)
                 connector_id=self.connector,
                 transaction_id=self.transaction_id,
                 power_import=float(random.randint(1330, 1800)),
@@ -63,13 +63,13 @@ class Transaction:
 
             return collect
 
-        def _pulse_status_notification(delay_seconds: int):
+        def _pulse_status_notification_preparing(delay_seconds: int=0):
             action = "StatusNotification"
             requests, responses = pulse(
                 f_request=self._status_notification_preparing_request,
                 f_response=self._status_notification_response,
-                starting_time=self.start_time,
-                ending_time=(parser.parse(self.start_time) + timedelta(seconds=delay_seconds)).isoformat(),
+                starting_time=(parser.parse(self.start_time) + timedelta(seconds=delay_seconds)).isoformat(),
+                ending_time=(parser.parse(self.start_time) + timedelta(seconds=delay_seconds+1)).isoformat(),
                 connector_id=self.connector
             )
             collect = []
@@ -83,20 +83,20 @@ class Transaction:
             return collect
 
         collect_all = collect_all + _pulse_start(delay_seconds=1)
-        collect_all = collect_all + _pulse_status_notification(delay_seconds=2)
+        collect_all = collect_all + _pulse_status_notification_preparing(delay_seconds=3)
 
 
         return collect_all
 
     def _stop(self):
         collect_all = []
-        def _pulse_stop(delay_seconds: int):
+        def _pulse_stop():
             action = "StopTransaction"
             requests, responses = pulse(
                 f_request=self._stop_transaction_request,
                 f_response=self._stop_transaction_response,
                 starting_time=self.stop_time,
-                ending_time=(parser.parse(self.stop_time) + timedelta(seconds=delay_seconds)).isoformat(),
+                ending_time=(parser.parse(self.stop_time) + timedelta(seconds=1)).isoformat(),
                 connector_id=self.connector,
                 transaction_id=self.transaction_id,
                 power_import=float(random.randint(1330, 1800)),
@@ -108,13 +108,13 @@ class Transaction:
 
             return collect
 
-        def _pulse_status_notification(delay_seconds: int):
+        def _pulse_status_notification_finishing(delay_seconds: int):
             action = "StatusNotification"
             requests, responses = pulse(
                 f_request=self._status_notification_finishing_request,
                 f_response=self._status_notification_response,
-                starting_time=self.start_time,
-                ending_time=(parser.parse(self.start_time) + timedelta(seconds=delay_seconds)).isoformat(),
+                starting_time=(parser.parse(self.stop_time) + timedelta(seconds=delay_seconds)).isoformat(),
+                ending_time=(parser.parse(self.stop_time) + timedelta(seconds=delay_seconds+1)).isoformat(),
                 connector_id=self.connector
             )
             collect = []
@@ -127,12 +127,13 @@ class Transaction:
 
             return collect
 
-        collect_all = collect_all + _pulse_stop(delay_seconds=1)
-        collect_all = collect_all + _pulse_status_notification(delay_seconds=2)
+        collect_all = collect_all + _pulse_stop()
+        collect_all = collect_all + _pulse_status_notification_finishing(delay_seconds=2)
         return collect_all
 
     def _meter_values_pulse(self):
         collect_all = []
+
         def _pulse_meter_values(delay_seconds: int, start_time: str, stop_time: str):
             action = "MeterValues"
             collect = []
@@ -149,15 +150,13 @@ class Transaction:
             collect = collect + [Event(message_type=MessageType.successful_response, charge_point_id=self.charge_point_id, action=action, body=v[0], write_timestamp=v[1]) for v in responses]
             return collect
 
-
-# This shoul dbe with respects to each session
         def _pulse_status_notification_charging(delay_seconds: int, start_time: str):
             action = "StatusNotification"
             requests, responses = pulse(
                 f_request=self._status_notification_charging_request,
                 f_response=self._status_notification_response,
-                starting_time=start_time,
-                ending_time=(parser.parse(start_time) + timedelta(seconds=delay_seconds)).isoformat(),
+                starting_time=(parser.parse(start_time) + timedelta(seconds=delay_seconds)).isoformat(),
+                ending_time=(parser.parse(start_time) + timedelta(seconds=delay_seconds+1)).isoformat(),
                 connector_id=self.connector
             )
             collect = []
@@ -170,13 +169,13 @@ class Transaction:
 
             return collect
 
-        def _pulse_status_notification_pausing(delay_seconds, start_time: str):
+        def _pulse_status_notification_pausing(delay_seconds: int, start_time: str):
             action = "StatusNotification"
             requests, responses = pulse(
                 f_request=self._status_notification_pause_charging_request,
                 f_response=self._status_notification_response,
-                starting_time=start_time,
-                ending_time=(parser.parse(start_time) + timedelta(seconds=delay_seconds)).isoformat(),
+                starting_time=(parser.parse(start_time) + timedelta(seconds=delay_seconds)).isoformat(),
+                ending_time=(parser.parse(start_time) + timedelta(seconds=delay_seconds+1)).isoformat(),
                 connector_id=self.connector
             )
             collect = []
@@ -190,9 +189,9 @@ class Transaction:
             return collect
 
         for s in self.sessions:
-            collect_all = collect_all + _pulse_status_notification_charging(delay_seconds=1, start_time=s.start_time)
-            collect_all = collect_all + _pulse_meter_values(delay_seconds=2, start_time=s.start_time, stop_time=s.stop_time)
-            collect_all = collect_all + _pulse_status_notification_pausing(1, start_time=s.stop_time)
+            collect_all = collect_all + _pulse_status_notification_charging(delay_seconds=4, start_time=s.start_time)
+            collect_all = collect_all + _pulse_meter_values(delay_seconds=6, start_time=s.start_time, stop_time=s.stop_time)
+            collect_all = collect_all + _pulse_status_notification_pausing(delay_seconds=0, start_time=s.stop_time)
 
         return collect_all
 
@@ -381,6 +380,6 @@ class Transaction:
         return call.StatusNotificationPayload(
             connector_id=self.connector,
             error_code=ChargePointErrorCode.no_error,
-            status=ChargePointStatus.suspended_evse,
+            status=ChargePointStatus.suspended_ev,
             timestamp=kwargs["timestamp"]
         ).__dict__

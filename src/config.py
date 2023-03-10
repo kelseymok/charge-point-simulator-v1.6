@@ -86,4 +86,4 @@ def build_charge_point():
 
 
 def charge_point_config():
-    return [ build_charge_point() for x in range(1) ]
+    return [ build_charge_point() for x in range(10) ]

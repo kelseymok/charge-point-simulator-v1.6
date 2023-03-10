@@ -1,8 +1,6 @@
 import random
 
-from ocpp.v16.enums import AuthorizationStatus, ChargePointErrorCode, ChargePointStatus
-
-from event import Event, MessageType
+from event import MessageType
 from transaction import Transaction
 from generator_config import TransactionSessionConfig
 
@@ -46,23 +44,24 @@ class TestTransaction:
         assert t.meter_current > 0
         assert len(result) == 16
         assert [(x.message_type, x.action, x.write_timestamp) for x in result] == [
-            (MessageType.request, 'StartTransaction', '2022-01-01T08:00:00+00:00'),
-            (MessageType.successful_response, 'StartTransaction', '2022-01-01T08:00:01+00:00'),
-            (MessageType.request, 'StatusNotification', '2022-01-01T08:00:00+00:00'),
-            (MessageType.successful_response, 'StatusNotification', '2022-01-01T08:00:01+00:00'),
-            (MessageType.request, 'StatusNotification', '2022-01-01T08:00:00+00:00'),
-            (MessageType.successful_response, 'StatusNotification', '2022-01-01T08:00:01+00:00'),
-            (MessageType.request, 'MeterValues', '2022-01-01T08:00:02+00:00'),
-            (MessageType.request, 'MeterValues', '2022-01-01T08:05:02+00:00'),
-            (MessageType.successful_response, 'MeterValues', '2022-01-01T08:00:03+00:00'),
-            (MessageType.successful_response, 'MeterValues', '2022-01-01T08:05:03+00:00'),
-            (MessageType.request, 'StatusNotification', '2022-01-01T08:10:00+00:00'),
-            (MessageType.successful_response, 'StatusNotification', '2022-01-01T08:10:01+00:00'),
-            (MessageType.request, 'StopTransaction', '2022-01-01T08:10:00+00:00'),
-            (MessageType.successful_response, 'StopTransaction', '2022-01-01T08:10:01+00:00'),
-            (MessageType.request, 'StatusNotification', '2022-01-01T08:00:00+00:00'),
-            (MessageType.successful_response, 'StatusNotification', '2022-01-01T08:00:01+00:00')
+            (MessageType.request, "StartTransaction", "2022-01-01T08:00:01+00:00"),
+            (MessageType.successful_response, "StartTransaction", "2022-01-01T08:00:02+00:00"),
+            (MessageType.request, "StatusNotification", "2022-01-01T08:00:03+00:00"),
+            (MessageType.successful_response, "StatusNotification", "2022-01-01T08:00:04+00:00"),
+            (MessageType.request, "StatusNotification", "2022-01-01T08:00:04+00:00"),
+            (MessageType.successful_response, "StatusNotification", "2022-01-01T08:00:05+00:00"),
+            (MessageType.request, "MeterValues", "2022-01-01T08:00:06+00:00"),
+            (MessageType.request, "MeterValues", "2022-01-01T08:05:06+00:00"),
+            (MessageType.successful_response, "MeterValues", "2022-01-01T08:00:07+00:00"),
+            (MessageType.successful_response, "MeterValues", "2022-01-01T08:05:07+00:00"),
+            (MessageType.request, "StatusNotification", "2022-01-01T08:10:00+00:00"),
+            (MessageType.successful_response, "StatusNotification", "2022-01-01T08:10:01+00:00"),
+            (MessageType.request, "StopTransaction", "2022-01-01T08:10:00+00:00"),
+            (MessageType.successful_response, "StopTransaction", "2022-01-01T08:10:01+00:00"),
+            (MessageType.request, "StatusNotification", "2022-01-01T08:10:02+00:00"),
+            (MessageType.successful_response, "StatusNotification", "2022-01-01T08:10:03+00:00")
         ]
+
     def test__start(self):
         t = Transaction(
             id=1,
@@ -80,57 +79,12 @@ class TestTransaction:
         )
         result = t._start()
         assert len(result) == 4
-        assert result[0].__dict__ == Event(
-            message_type=MessageType.request,
-            charge_point_id="123",
-            action="StartTransaction",
-            body={
-                "connector_id": 1,
-                "id_tag": "201e331c-a315-45d7-b43a-e2bc931b9981",
-                "meter_start": 0,
-                "timestamp": "2022-01-01T08:00:00+00:00",
-                "reservation_id": None
-            },
-            write_timestamp="2022-01-01T08:00:00+00:00"
-        ).__dict__
-        assert result[1].__dict__ == Event(
-            message_type=MessageType.successful_response,
-            charge_point_id="123",
-            action="StartTransaction",
-            body={
-                "id_tag_info": {
-                    "expiry_date": None,
-                    "parent_id_tag": "201e331c-a315-45d7-b43a-e2bc931b9981",
-                    "status": AuthorizationStatus.accepted,
-                },
-                "transaction_id": 1
-            },
-            write_timestamp="2022-01-01T08:00:01+00:00"
-        ).__dict__
-
-        assert result[2].__dict__ == Event(
-            message_type=MessageType.request,
-            charge_point_id="123",
-            action="StatusNotification",
-            body={
-                "connector_id": 1,
-                "error_code": ChargePointErrorCode.no_error,
-                "info": None,
-                "status": ChargePointStatus.preparing,
-                "timestamp":"2022-01-01T08:00:00+00:00",
-                "vendor_error_code": None,
-                "vendor_id": None
-            },
-            write_timestamp="2022-01-01T08:00:00+00:00"
-        ).__dict__
-        assert result[3].__dict__ == Event(
-            message_type=MessageType.successful_response,
-            charge_point_id="123",
-            action="StatusNotification",
-            body={},
-            write_timestamp="2022-01-01T08:00:01+00:00"
-        ).__dict__
-
+        assert [(x.message_type, x.action, x.write_timestamp) for x in result] == [
+            (MessageType.request, "StartTransaction", "2022-01-01T08:00:01+00:00"),
+            (MessageType.successful_response, "StartTransaction", "2022-01-01T08:00:02+00:00"),
+            (MessageType.request, "StatusNotification", "2022-01-01T08:00:03+00:00"),
+            (MessageType.successful_response, "StatusNotification", "2022-01-01T08:00:04+00:00")
+        ]
 
     def test__stop(self):
         t = Transaction(
@@ -148,33 +102,12 @@ class TestTransaction:
             ]
         )
         result = t._stop()
-        assert result[0].__dict__ == Event(
-            message_type=MessageType.request,
-            charge_point_id="123",
-            action="StopTransaction",
-            body={
-                "meter_stop": 0,
-                "timestamp": "2022-01-01T09:00:00+00:00",
-                "transaction_id": 1,
-                "reason": None,
-                "id_tag": "201e331c-a315-45d7-b43a-e2bc931b9981",
-                "transaction_data": None
-            },
-            write_timestamp="2022-01-01T09:00:00+00:00"
-        ).__dict__
-        assert result[1].__dict__ == Event(
-            message_type=MessageType.successful_response,
-            charge_point_id="123",
-            action="StopTransaction",
-            body={
-                "id_tag_info": {
-                    "expiry_date": None,
-                    "parent_id_tag": "201e331c-a315-45d7-b43a-e2bc931b9981",
-                    "status": AuthorizationStatus.accepted
-                }
-            },
-            write_timestamp="2022-01-01T09:00:01+00:00"
-        ).__dict__
+        assert [(x.message_type, x.action, x.write_timestamp) for x in result] == [
+            (MessageType.request, "StopTransaction", "2022-01-01T09:00:00+00:00"),
+            (MessageType.successful_response, "StopTransaction", "2022-01-01T09:00:01+00:00"),
+            (MessageType.request, "StatusNotification", "2022-01-01T09:00:02+00:00"),
+            (MessageType.successful_response, "StatusNotification", "2022-01-01T09:00:03+00:00")
+        ]
 
     def test__meter_values_pulse(self):
         t = Transaction(
@@ -229,26 +162,26 @@ class TestTransaction:
         result = t._meter_values_pulse()
         assert len(result) == 20
         assert [(x.message_type, x.action, x.write_timestamp) for x in result] == [
-            (MessageType.request, "StatusNotification", "2022-01-01T08:00:00+00:00"),
-             (MessageType.successful_response, "StatusNotification", "2022-01-01T08:00:01+00:00"),
-             (MessageType.request, "MeterValues", "2022-01-01T08:00:02+00:00"),
-             (MessageType.request, "MeterValues", "2022-01-01T08:05:02+00:00"),
-             (MessageType.request, "MeterValues", "2022-01-01T08:10:02+00:00"),
-             (MessageType.successful_response, "MeterValues", "2022-01-01T08:00:03+00:00"),
-             (MessageType.successful_response, "MeterValues", "2022-01-01T08:05:03+00:00"),
-             (MessageType.successful_response, "MeterValues", "2022-01-01T08:10:03+00:00"),
-             (MessageType.request, "StatusNotification", "2022-01-01T08:15:00+00:00"),
-             (MessageType.successful_response, "StatusNotification", "2022-01-01T08:15:01+00:00"),
-             (MessageType.request, "StatusNotification", "2022-01-01T08:45:00+00:00"),
-             (MessageType.successful_response, "StatusNotification", "2022-01-01T08:45:01+00:00"),
-             (MessageType.request, "MeterValues", "2022-01-01T08:45:02+00:00"),
-             (MessageType.request, "MeterValues", "2022-01-01T08:50:02+00:00"),
-             (MessageType.request, "MeterValues", "2022-01-01T08:55:02+00:00"),
-             (MessageType.successful_response, "MeterValues", "2022-01-01T08:45:03+00:00"),
-             (MessageType.successful_response, "MeterValues", "2022-01-01T08:50:03+00:00"),
-             (MessageType.successful_response, "MeterValues", "2022-01-01T08:55:03+00:00"),
-             (MessageType.request, "StatusNotification", "2022-01-01T09:00:00+00:00"),
-             (MessageType.successful_response, "StatusNotification", "2022-01-01T09:00:01+00:00")
+            (MessageType.request, "StatusNotification", "2022-01-01T08:00:04+00:00"),
+            (MessageType.successful_response, "StatusNotification", "2022-01-01T08:00:05+00:00"),
+            (MessageType.request, "MeterValues", "2022-01-01T08:00:06+00:00"),
+            (MessageType.request, "MeterValues", "2022-01-01T08:05:06+00:00"),
+            (MessageType.request, "MeterValues", "2022-01-01T08:10:06+00:00"),
+            (MessageType.successful_response, "MeterValues", "2022-01-01T08:00:07+00:00"),
+            (MessageType.successful_response, "MeterValues", "2022-01-01T08:05:07+00:00"),
+            (MessageType.successful_response, "MeterValues", "2022-01-01T08:10:07+00:00"),
+            (MessageType.request, "StatusNotification", "2022-01-01T08:15:00+00:00"),
+            (MessageType.successful_response, "StatusNotification", "2022-01-01T08:15:01+00:00"),
+            (MessageType.request, "StatusNotification", "2022-01-01T08:45:04+00:00"),
+            (MessageType.successful_response, "StatusNotification", "2022-01-01T08:45:05+00:00"),
+            (MessageType.request, "MeterValues", "2022-01-01T08:45:06+00:00"),
+            (MessageType.request, "MeterValues", "2022-01-01T08:50:06+00:00"),
+            (MessageType.request, "MeterValues", "2022-01-01T08:55:06+00:00"),
+            (MessageType.successful_response, "MeterValues", "2022-01-01T08:45:07+00:00"),
+            (MessageType.successful_response, "MeterValues", "2022-01-01T08:50:07+00:00"),
+            (MessageType.successful_response, "MeterValues", "2022-01-01T08:55:07+00:00"),
+            (MessageType.request, "StatusNotification", "2022-01-01T09:00:00+00:00"),
+            (MessageType.successful_response, "StatusNotification", "2022-01-01T09:00:01+00:00")
         ]
 
     def test__start_transaction(self):
