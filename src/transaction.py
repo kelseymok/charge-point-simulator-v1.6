@@ -37,7 +37,6 @@ class Transaction:
 
     def _increase_meter(self, **kwargs):
         self.meter_current = self.meter_current + kwargs["power_import"]
-        print(f"Meter is at {self.meter_current} after an increase of {kwargs['power_import']}")
         return self.meter_current
 
     def _start(self):
