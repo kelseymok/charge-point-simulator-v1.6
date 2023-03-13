@@ -1,4 +1,5 @@
 import asyncio
+import uuid
 from typing import List
 
 from ocpp.v16 import call, call_result
@@ -52,6 +53,7 @@ class ChargePoint:
 
     async def _boot(self):
         action = "BootNotification"
+        message_id = str(uuid.uuid4())
         ending_time = (parser.parse(self.on_time) + timedelta(seconds=1)).isoformat()
         requests, responses = pulse(
             f_request=self._boot_notification_request,
@@ -60,16 +62,18 @@ class ChargePoint:
             ending_time=ending_time,
             freq=60*5
         )
-        self.event_collector.add_events([Event(message_type=MessageType.request, charge_point_id=self.serial_number,
+        self.event_collector.add_events([Event(message_id=message_id, message_type=MessageType.request, charge_point_id=self.serial_number,
                                                action=action, body=x[0], write_timestamp=x[1]) for x in requests])
-        self.event_collector.add_events([Event(message_type=MessageType.successful_response,
+        self.event_collector.add_events([Event(message_id=message_id, message_type=MessageType.successful_response,
                                                charge_point_id=self.serial_number, action=action, body=x[0],
                                                write_timestamp=x[1]) for x in responses])
 
     async def _beat(self, starting_time, ending_time, freq=60*5):
+        action = "Heartbeat"
+        message_id = str(uuid.uuid4())
         requests, responses = pulse(f_request=self._heartbeat_request, f_response=self._heartbeat_response, starting_time=starting_time, ending_time=ending_time, freq=freq)
-        self.event_collector.add_events([Event(message_type=MessageType.request, charge_point_id=self.serial_number, action="HeartBeat", body=x[0], write_timestamp=x[1]) for x in requests])
-        self.event_collector.add_events([Event(message_type=MessageType.successful_response, charge_point_id=self.serial_number, action="HeartBeat", body=x[0], write_timestamp=x[1]) for x in responses])
+        self.event_collector.add_events([Event(message_id=message_id, message_type=MessageType.request, charge_point_id=self.serial_number, action=action, body=x[0], write_timestamp=x[1]) for x in requests])
+        self.event_collector.add_events([Event(message_id=message_id, message_type=MessageType.successful_response, charge_point_id=self.serial_number, action=action, body=x[0], write_timestamp=x[1]) for x in responses])
 
     def _boot_notification_request(self, **kwargs):
         return call.BootNotificationPayload(

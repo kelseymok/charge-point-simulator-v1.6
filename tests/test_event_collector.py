@@ -6,6 +6,7 @@ class TestEventCollector:
     def test_add_event(self):
         collector = EventCollector()
         ocpp_event = Event(
+            message_id="abc",
             message_type=MessageType.request,
             charge_point_id="123",
             action="Heartbeat",
@@ -18,6 +19,7 @@ class TestEventCollector:
     def test_get_events(self):
         collector = EventCollector()
         ocpp_event = Event(
+            message_id="abc",
             message_type=MessageType.request,
             charge_point_id="123",
             action="Heartbeat",
@@ -26,6 +28,7 @@ class TestEventCollector:
         )
         collector.add_events([ocpp_event])
         assert collector.get_events() == [{
+            "message_id": "abc",
             "message_type": MessageType.request,
             "action": "Heartbeat",
             "body": '{}',

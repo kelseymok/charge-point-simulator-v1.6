@@ -44,6 +44,7 @@ class Transaction:
 
         def _pulse_start(delay_seconds: int=0):
             action = "StartTransaction"
+            message_id = str(uuid.uuid4())
             requests, responses = pulse(
                 f_request=self._start_transaction_request,
                 f_response=self._start_transaction_response,
@@ -55,16 +56,17 @@ class Transaction:
             )
             collect = []
             collect = collect + [
-                Event(message_type=MessageType.request, charge_point_id=self.charge_point_id, action=action, body=x[0],
+                Event(message_id=message_id, message_type=MessageType.request, charge_point_id=self.charge_point_id, action=action, body=x[0],
                       write_timestamp=x[1]) for x in requests]
             collect = collect + [
-                Event(message_type=MessageType.successful_response, charge_point_id=self.charge_point_id, action=action,
+                Event(message_id=message_id, message_type=MessageType.successful_response, charge_point_id=self.charge_point_id, action=action,
                       body=x[0], write_timestamp=x[1]) for x in responses]
 
             return collect
 
         def _pulse_status_notification_preparing(delay_seconds: int=0):
             action = "StatusNotification"
+            message_id = str(uuid.uuid4())
             requests, responses = pulse(
                 f_request=self._status_notification_preparing_request,
                 f_response=self._status_notification_response,
@@ -74,10 +76,10 @@ class Transaction:
             )
             collect = []
             collect = collect + [
-                Event(message_type=MessageType.request, charge_point_id=self.charge_point_id, action=action, body=x[0],
+                Event(message_id=message_id, message_type=MessageType.request, charge_point_id=self.charge_point_id, action=action, body=x[0],
                       write_timestamp=x[1]) for x in requests]
             collect = collect + [
-                Event(message_type=MessageType.successful_response, charge_point_id=self.charge_point_id, action=action,
+                Event(message_id=message_id, message_type=MessageType.successful_response, charge_point_id=self.charge_point_id, action=action,
                       body=x[0], write_timestamp=x[1]) for x in responses]
 
             return collect
@@ -92,6 +94,7 @@ class Transaction:
         collect_all = []
         def _pulse_stop():
             action = "StopTransaction"
+            message_id = str(uuid.uuid4())
             requests, responses = pulse(
                 f_request=self._stop_transaction_request,
                 f_response=self._stop_transaction_response,
@@ -103,13 +106,14 @@ class Transaction:
             )
 
             collect = []
-            collect = collect + [Event(message_type=MessageType.request, charge_point_id=self.charge_point_id, action=action, body=x[0], write_timestamp=x[1]) for x in requests]
-            collect = collect + [Event(message_type=MessageType.successful_response, charge_point_id=self.charge_point_id, action=action, body=x[0], write_timestamp=x[1]) for x in responses]
+            collect = collect + [Event(message_id=message_id, message_type=MessageType.request, charge_point_id=self.charge_point_id, action=action, body=x[0], write_timestamp=x[1]) for x in requests]
+            collect = collect + [Event(message_id=message_id, message_type=MessageType.successful_response, charge_point_id=self.charge_point_id, action=action, body=x[0], write_timestamp=x[1]) for x in responses]
 
             return collect
 
         def _pulse_status_notification_finishing(delay_seconds: int):
             action = "StatusNotification"
+            message_id = str(uuid.uuid4())
             requests, responses = pulse(
                 f_request=self._status_notification_finishing_request,
                 f_response=self._status_notification_response,
@@ -119,10 +123,10 @@ class Transaction:
             )
             collect = []
             collect = collect + [
-                Event(message_type=MessageType.request, charge_point_id=self.charge_point_id, action=action, body=x[0],
+                Event(message_id=message_id, message_type=MessageType.request, charge_point_id=self.charge_point_id, action=action, body=x[0],
                       write_timestamp=x[1]) for x in requests]
             collect = collect + [
-                Event(message_type=MessageType.successful_response, charge_point_id=self.charge_point_id, action=action,
+                Event(message_id=message_id, message_type=MessageType.successful_response, charge_point_id=self.charge_point_id, action=action,
                       body=x[0], write_timestamp=x[1]) for x in responses]
 
             return collect
@@ -136,6 +140,7 @@ class Transaction:
 
         def _pulse_meter_values(delay_seconds: int, start_time: str, stop_time: str):
             action = "MeterValues"
+            message_id = str(uuid.uuid4())
             collect = []
             requests, responses = pulse(
                 f_request=self._meter_values_request,
@@ -146,12 +151,13 @@ class Transaction:
                 transaction_id=self.transaction_id,
                 power_import=float(random.randint(1330, 1800)),
             )
-            collect = collect + [Event(message_type=MessageType.request, charge_point_id=self.charge_point_id, action=action, body=v[0], write_timestamp=v[1]) for v in requests]
-            collect = collect + [Event(message_type=MessageType.successful_response, charge_point_id=self.charge_point_id, action=action, body=v[0], write_timestamp=v[1]) for v in responses]
+            collect = collect + [Event(message_id=message_id, message_type=MessageType.request, charge_point_id=self.charge_point_id, action=action, body=v[0], write_timestamp=v[1]) for v in requests]
+            collect = collect + [Event(message_id=message_id, message_type=MessageType.successful_response, charge_point_id=self.charge_point_id, action=action, body=v[0], write_timestamp=v[1]) for v in responses]
             return collect
 
         def _pulse_status_notification_charging(delay_seconds: int, start_time: str):
             action = "StatusNotification"
+            message_id = str(uuid.uuid4())
             requests, responses = pulse(
                 f_request=self._status_notification_charging_request,
                 f_response=self._status_notification_response,
@@ -161,16 +167,17 @@ class Transaction:
             )
             collect = []
             collect = collect + [
-                Event(message_type=MessageType.request, charge_point_id=self.charge_point_id, action=action, body=x[0],
+                Event(message_id=message_id, message_type=MessageType.request, charge_point_id=self.charge_point_id, action=action, body=x[0],
                       write_timestamp=x[1]) for x in requests]
             collect = collect + [
-                Event(message_type=MessageType.successful_response, charge_point_id=self.charge_point_id, action=action,
+                Event(message_id=message_id, message_type=MessageType.successful_response, charge_point_id=self.charge_point_id, action=action,
                       body=x[0], write_timestamp=x[1]) for x in responses]
 
             return collect
 
         def _pulse_status_notification_pausing(delay_seconds: int, start_time: str):
             action = "StatusNotification"
+            message_id = str(uuid.uuid4())
             requests, responses = pulse(
                 f_request=self._status_notification_pause_charging_request,
                 f_response=self._status_notification_response,
@@ -180,10 +187,10 @@ class Transaction:
             )
             collect = []
             collect = collect + [
-                Event(message_type=MessageType.request, charge_point_id=self.charge_point_id, action=action, body=x[0],
+                Event(message_id=message_id, message_type=MessageType.request, charge_point_id=self.charge_point_id, action=action, body=x[0],
                       write_timestamp=x[1]) for x in requests]
             collect = collect + [
-                Event(message_type=MessageType.successful_response, charge_point_id=self.charge_point_id, action=action,
+                Event(message_id=message_id, message_type=MessageType.successful_response, charge_point_id=self.charge_point_id, action=action,
                       body=x[0], write_timestamp=x[1]) for x in responses]
 
             return collect

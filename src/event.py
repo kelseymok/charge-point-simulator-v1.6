@@ -12,7 +12,8 @@ class MessageType(int, Enum):
 
 
 class Event:
-    def __init__(self, message_type: MessageType, charge_point_id: str, action: str, body: Dict, write_timestamp: str):
+    def __init__(self, message_id: str, message_type: MessageType, charge_point_id: str, action: str, body: Dict, write_timestamp: str):
+        self.message_id = message_id
         self.message_type = message_type
         self.charge_point_id = charge_point_id
         self.action = action
@@ -22,6 +23,7 @@ class Event:
     def format(self):
         try:
             data = {
+                "message_id": self.message_id,
                 "message_type": self.message_type,
                 "charge_point_id": self.charge_point_id,
                 "action": self.action,

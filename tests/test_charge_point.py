@@ -45,14 +45,14 @@ class TestChargePoint(IsolatedAsyncioTestCase):
         assert [(x.message_type, x.action) for x in event_collector_calls] == [
             (MessageType.request, "BootNotification"),
             (MessageType.successful_response, "BootNotification"),
-            (MessageType.request, "HeartBeat"),
-            (MessageType.request, "HeartBeat"),
-            (MessageType.request, "HeartBeat"),
-            (MessageType.request, "HeartBeat"),
-            (MessageType.successful_response, "HeartBeat"),
-            (MessageType.successful_response, "HeartBeat"),
-            (MessageType.successful_response, "HeartBeat"),
-            (MessageType.successful_response, "HeartBeat")
+            (MessageType.request, "Heartbeat"),
+            (MessageType.request, "Heartbeat"),
+            (MessageType.request, "Heartbeat"),
+            (MessageType.request, "Heartbeat"),
+            (MessageType.successful_response, "Heartbeat"),
+            (MessageType.successful_response, "Heartbeat"),
+            (MessageType.successful_response, "Heartbeat"),
+            (MessageType.successful_response, "Heartbeat")
         ]
 
     async def test__beat(self):
