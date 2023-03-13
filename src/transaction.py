@@ -37,6 +37,7 @@ class Transaction:
 
     def _increase_meter(self, **kwargs):
         self.meter_current = self.meter_current + kwargs["power_import"]
+        print(f"Meter is at {self.meter_current} after an increase of {kwargs['power_import']}")
         return self.meter_current
 
     def _start(self):
@@ -52,7 +53,7 @@ class Transaction:
                 ending_time=(parser.parse(self.start_time) + timedelta(seconds=delay_seconds+1)).isoformat(), # can this be a default (+1 secs for single pulse)
                 connector_id=self.connector,
                 transaction_id=self.transaction_id,
-                power_import=float(random.randint(1330, 1800)),
+                # power_import=float(random.randint(1330, 1800)),
             )
             collect = []
             collect = collect + [
@@ -102,7 +103,6 @@ class Transaction:
                 ending_time=(parser.parse(self.stop_time) + timedelta(seconds=1)).isoformat(),
                 connector_id=self.connector,
                 transaction_id=self.transaction_id,
-                power_import=float(random.randint(1330, 1800)),
             )
 
             collect = []
@@ -219,7 +219,7 @@ class Transaction:
     def _stop_transaction_request(self, **kwargs):
         return call.StopTransactionPayload(
             timestamp=self.stop_time,
-            meter_stop=self.meter_stop,
+            meter_stop=self.meter_current,
             transaction_id=self.transaction_id,
             id_tag=self.id_tag,
         ).__dict__
