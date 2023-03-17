@@ -218,7 +218,7 @@ class Transaction:
     def _stop_transaction_request(self, **kwargs):
         return call.StopTransactionPayload(
             timestamp=self.stop_time,
-            meter_stop=self.meter_current,
+            meter_stop=int(self.meter_current),
             transaction_id=self.transaction_id,
             id_tag=self.id_tag,
         ).__dict__
