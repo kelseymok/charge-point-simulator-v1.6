@@ -22,9 +22,7 @@ class Transaction:
         self.charge_point_id = charge_point_id
         self.connector = connector
         self.transaction_id = id
-        # self.meter_start = 0
-        # self.meter_current = 0
-        # self.meter_stop = self.meter_current
+        self.transaction_meter = 0
         self.start_time = start_time
         self.stop_time = stop_time
         self.id_tag = id_tag
@@ -238,6 +236,9 @@ class Transaction:
     def _meter_values_request(self, **kwargs):
         noisy_power_import = self._add_noise(20.0, kwargs["power_import"])
         noisy_current_import = self._add_noise(2.0, 6.0)
+        power_import = float(noisy_power_import)
+        self._increase_meter(power_import=float(noisy_power_import))
+        self.transaction_meter = self.transaction_meter + power_import
         sampled_values = [
             SampledValue(
                 context=ReadingContext.sample_periodic,
@@ -316,7 +317,7 @@ class Transaction:
                 format=ValueFormat.raw,
                 measurand=Measurand.energy_active_import_register,
                 unit=UnitOfMeasure.wh,
-                value=str(self._increase_meter(power_import=float(noisy_power_import)))
+                value=str(self.transaction_meter)
             ),
             SampledValue(
                 value=str(noisy_current_import),
