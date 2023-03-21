@@ -14,19 +14,22 @@ from ocpp.v16.enums import ReadingContext, ValueFormat, Measurand, Phase, UnitOf
 import json
 from dateutil import parser
 
+from meter import Meter
+
 
 class Transaction:
-    def __init__(self, id: int, connector: int, charge_point_id: str, start_time: str, stop_time: str, sessions: List[TransactionSessionConfig], id_tag: str=str(uuid.uuid4())):
+    def __init__(self, id: int, connector: int, charge_point_id: str, start_time: str, stop_time: str, sessions: List[TransactionSessionConfig], meter: Meter, id_tag: str=str(uuid.uuid4())):
         self.charge_point_id = charge_point_id
         self.connector = connector
         self.transaction_id = id
-        self.meter_start = 0
-        self.meter_current = 0
-        self.meter_stop = self.meter_current
+        # self.meter_start = 0
+        # self.meter_current = 0
+        # self.meter_stop = self.meter_current
         self.start_time = start_time
         self.stop_time = stop_time
         self.id_tag = id_tag
         self.sessions = sessions
+        self.meter = meter
 
     def start(self):
         collect = self._start()
@@ -36,8 +39,8 @@ class Transaction:
         return collect
 
     def _increase_meter(self, **kwargs):
-        self.meter_current = self.meter_current + kwargs["power_import"]
-        return self.meter_current
+        self.meter.increase_meter(w_value=kwargs["power_import"])
+        return kwargs["power_import"]
 
     def _start(self):
         collect_all = []
@@ -205,7 +208,7 @@ class Transaction:
         return call.StartTransactionPayload(
             connector_id=self.connector,
             id_tag=self.id_tag,
-            meter_start=self.meter_start,
+            meter_start=int(self.meter.current_meter),
             timestamp=self.start_time
         ).__dict__
 
@@ -218,7 +221,7 @@ class Transaction:
     def _stop_transaction_request(self, **kwargs):
         return call.StopTransactionPayload(
             timestamp=self.stop_time,
-            meter_stop=int(self.meter_current),
+            meter_stop=int(self.meter.current_meter),
             transaction_id=self.transaction_id,
             id_tag=self.id_tag,
         ).__dict__

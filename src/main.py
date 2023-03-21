@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 
 import pandas as pd
 
+from meter import Meter
 from src.charge_point import ChargePoint
 from event_collector import EventCollector
 from transactions import Transactions
@@ -24,7 +25,7 @@ def write_events(events):
 async def main():
     event_collector = EventCollector()
     charge_points = [
-        ChargePoint(transactions_storage=transactions_storage, event_collector=event_collector, config=i)
+        ChargePoint(meter=Meter(), transactions_storage=transactions_storage, event_collector=event_collector, config=i)
         for i in charge_point_config()
     ]
 

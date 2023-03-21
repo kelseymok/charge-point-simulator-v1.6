@@ -19,7 +19,7 @@ class Transactions:
     def add_transactions(self, transactions: List[TransactionConfig]):
         self.transactions_list = self.transactions_list + transactions
 
-    def sort_transactions(self):
+    def sort_transactions(self) -> List[TransactionConfig]:
         return sorted(self.transactions_list, key=lambda x: parser.parse(x.start_time))
 
     def play_transactions(self):

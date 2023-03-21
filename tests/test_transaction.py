@@ -1,6 +1,7 @@
 import random
 
 from event import MessageType
+from meter import Meter
 from transaction import Transaction
 from generator_config import TransactionSessionConfig
 
@@ -14,6 +15,7 @@ class TestTransaction:
             start_time="2022-01-01T08:00:00+00:00",
             stop_time="2022-01-01T09:00:00+00:00",
             id_tag="201e331c-a315-45d7-b43a-e2bc931b9981",
+            meter=Meter(),
             sessions=[
                 TransactionSessionConfig(
                     start_time="2022-01-01T08:00:00+00:00",
@@ -22,9 +24,10 @@ class TestTransaction:
             ]
         )
         t._increase_meter(power_import=1000)
-        assert t.meter_current == 1000
-        t._increase_meter(power_import=1050)
-        assert t.meter_current == 2050
+        assert t.meter.current_meter == 1000
+
+        t._increase_meter(power_import=1050.234)
+        assert t.meter.current_meter == 2050
 
     def test_start(self):
         t = Transaction(
@@ -38,10 +41,11 @@ class TestTransaction:
                     start_time="2022-01-01T08:00:00+00:00",
                     stop_time="2022-01-01T08:10:00+00:00",
                 )
-            ]
+            ],
+            meter=Meter()
         )
         result = t.start()
-        assert t.meter_current > 0
+        assert t.meter.current_meter > 0
         assert len(result) == 16
         assert [(x.message_type, x.action, x.write_timestamp) for x in result] == [
             (MessageType.request, "StartTransaction", "2022-01-01T08:00:01+00:00"),
@@ -75,7 +79,8 @@ class TestTransaction:
                     start_time="2022-01-01T08:00:00+00:00",
                     stop_time="2022-01-01T09:00:00+00:00",
                 )
-            ]
+            ],
+            meter=Meter()
         )
         result = t._start()
         assert len(result) == 4
@@ -99,7 +104,8 @@ class TestTransaction:
                     start_time="2022-01-01T08:00:00+00:00",
                     stop_time="2022-01-01T09:00:00+00:00",
                 )
-            ]
+            ],
+            meter=Meter()
         )
         result = t._stop()
         assert [(x.message_type, x.action, x.write_timestamp) for x in result] == [
@@ -122,7 +128,8 @@ class TestTransaction:
                     start_time="2022-01-01T08:00:00+00:00",
                     stop_time="2022-01-01T08:15:00+00:00",
                 )
-            ]
+            ],
+            meter=Meter()
         )
         result = t._meter_values_pulse()
         assert len(result) == 10
@@ -157,7 +164,8 @@ class TestTransaction:
                     start_time="2022-01-01T08:45:00+00:00",
                     stop_time="2022-01-01T09:00:00+00:00",
                 ),
-            ]
+            ],
+            meter=Meter()
         )
         result = t._meter_values_pulse()
         assert len(result) == 20
@@ -197,7 +205,8 @@ class TestTransaction:
                     start_time="2022-01-01T08:00:00+00:00",
                     stop_time="2022-01-01T08:15:00+00:00",
                 )
-            ]
+            ],
+            meter=Meter()
         )
         result = t._start_transaction_request()
         assert result == {
@@ -221,7 +230,8 @@ class TestTransaction:
                     start_time="2022-01-01T08:00:00+00:00",
                     stop_time="2022-01-01T08:15:00+00:00",
                 )
-            ]
+            ],
+            meter=Meter()
         )
         result = t._stop_transaction_request()
         assert result == {
@@ -247,7 +257,8 @@ class TestTransaction:
                     start_time="2022-01-01T08:00:00+00:00",
                     stop_time="2022-01-01T08:15:00+00:00",
                 )
-            ]
+            ],
+            meter=Meter()
         )
         result = t._add_noise(3, 10)
         assert result == 10.43
@@ -266,7 +277,8 @@ class TestTransaction:
                     start_time="2022-01-01T08:00:00+00:00",
                     stop_time="2022-01-01T08:15:00+00:00",
                 )
-            ]
+            ],
+            meter=Meter()
         )
         result = t._meter_values_request(power_import=1000, connector_id=1, transaction_id=1, timestamp="2023-01-01T08:00:00+00:00")
         assert result == {

@@ -7,6 +7,7 @@ from unittest import IsolatedAsyncioTestCase
 
 from event_collector import EventCollector
 from generator_config import ChargePointConfiguration, ChargePointTransactionConfig, TransactionSessionConfig
+from meter import Meter
 from transactions import Transactions
 
 
@@ -15,6 +16,7 @@ class TestChargePoint(IsolatedAsyncioTestCase):
     async def test_start(self):
         transactions_storage = Mock(Transactions)
         event_collector = Mock(EventCollector)
+        meter = Mock(Meter)
         config = ChargePointConfiguration(
             model=f"BB-0",
             vendor="AwEsOmEcHaRgEr",
@@ -35,7 +37,8 @@ class TestChargePoint(IsolatedAsyncioTestCase):
         cp = ChargePoint(
             transactions_storage=transactions_storage,
             event_collector=event_collector,
-            config=config
+            config=config,
+            meter=meter
         )
         await cp.start()
         assert len(transactions_storage.add_transactions.call_args_list[0][0][0]) == 1
@@ -58,6 +61,7 @@ class TestChargePoint(IsolatedAsyncioTestCase):
     async def test__beat(self):
         transactions_storage = Mock(Transactions)
         event_collector = Mock(EventCollector)
+        meter = Mock(Meter)
         config = ChargePointConfiguration(
             model=f"BB-0",
             vendor="AwEsOmEcHaRgEr",
@@ -78,13 +82,15 @@ class TestChargePoint(IsolatedAsyncioTestCase):
         cp = ChargePoint(
             transactions_storage=transactions_storage,
             event_collector=event_collector,
-            config=config
+            config=config,
+            meter=meter
         )
         await cp._beat("2023-01-01T08:00:00+00:00", "2023-01-01T08:10:00+00:00")
         assert len(event_collector.add_events.call_args_list[0][0][0]) == 2
     async def test__boot(self):
         transactions_storage = Mock(Transactions)
         event_collector = Mock(EventCollector)
+        meter = Mock(Meter)
         config = ChargePointConfiguration(
             model=f"BB-0",
             vendor="AwEsOmEcHaRgEr",
@@ -107,7 +113,8 @@ class TestChargePoint(IsolatedAsyncioTestCase):
         cp = ChargePoint(
             transactions_storage=transactions_storage,
             event_collector=event_collector,
-            config=config
+            config=config,
+            meter=meter
         )
         await cp._boot()
         assert len(event_collector.add_events.call_args_list[0][0][0]) == 1

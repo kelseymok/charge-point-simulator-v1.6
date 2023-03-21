@@ -2,6 +2,8 @@
 from dataclasses import dataclass
 from typing import List
 
+from meter import Meter
+
 
 @dataclass
 class TransactionSessionConfig:
@@ -16,6 +18,7 @@ class TransactionConfig:
     start_time: str
     stop_time: str
     sessions: List[TransactionSessionConfig]
+    meter: Meter
 
 
 @dataclass

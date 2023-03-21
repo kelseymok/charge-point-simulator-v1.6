@@ -2,6 +2,7 @@ import random
 
 from event import MessageType
 from generator_config import TransactionConfig, TransactionSessionConfig
+from meter import Meter
 from transactions import Transactions
 
 
@@ -9,6 +10,7 @@ class TestTransctions:
 
     def test_add_transactions(self):
         transactions_storage = Transactions()
+        transaction_config_a_meter = Meter()
         transaction_config_a = TransactionConfig(
             charge_point_id="123",
             connector=1,
@@ -19,9 +21,11 @@ class TestTransctions:
                     start_time="2022-01-01 08:05:00",
                     stop_time="2022-01-01 10:15:00",
                 )
-            ]
+            ],
+            meter=transaction_config_a_meter
         )
 
+        transaction_config_b_meter = Meter()
         transaction_config_b = TransactionConfig(
             charge_point_id="123",
             connector=1,
@@ -36,7 +40,8 @@ class TestTransctions:
                     start_time="2022-01-01 13:30:00",
                     stop_time="2022-01-01 13:45:00"
                 )
-            ]
+            ],
+            meter=transaction_config_b_meter
         )
         transactions_storage.add_transactions([transaction_config_b, transaction_config_a])
 
@@ -55,7 +60,8 @@ class TestTransctions:
                         start_time="2022-01-01 13:30:00",
                         stop_time="2022-01-01 13:45:00"
                     )
-                ]
+                ],
+                meter=transaction_config_b_meter
             ),
             TransactionConfig(
                 charge_point_id="123",
@@ -67,12 +73,14 @@ class TestTransctions:
                         start_time="2022-01-01 08:05:00",
                         stop_time="2022-01-01 10:15:00",
                     )
-                ]
+                ],
+                meter=transaction_config_a_meter
             )
         ]
 
     def test_sort_transactions(self):
         transactions_storage = Transactions()
+        transactions_config_a_meter = Meter()
         transaction_config_a = TransactionConfig(
             charge_point_id="123",
             connector=1,
@@ -83,9 +91,10 @@ class TestTransctions:
                     start_time="2022-01-01 08:05:00",
                     stop_time="2022-01-01 10:15:00",
                 )
-            ]
+            ],
+            meter=transactions_config_a_meter
         )
-
+        transactions_config_b_meter = Meter()
         transaction_config_b = TransactionConfig(
             charge_point_id="123",
             connector=1,
@@ -100,7 +109,8 @@ class TestTransctions:
                     start_time="2022-01-01 13:30:00",
                     stop_time="2022-01-01 13:45:00"
                 )
-            ]
+            ],
+            meter=transactions_config_b_meter
         )
         transactions_storage.add_transactions([transaction_config_b, transaction_config_a])
         result = transactions_storage.sort_transactions()
@@ -115,7 +125,8 @@ class TestTransctions:
                         start_time="2022-01-01 08:05:00",
                         stop_time="2022-01-01 10:15:00",
                     )
-                ]
+                ],
+                meter=transactions_config_a_meter
             ),
             TransactionConfig(
                 charge_point_id="123",
@@ -131,7 +142,8 @@ class TestTransctions:
                         start_time="2022-01-01 13:30:00",
                         stop_time="2022-01-01 13:45:00"
                     )
-                ]
+                ],
+                meter=transactions_config_b_meter
             )
         ]
 
@@ -147,7 +159,8 @@ class TestTransctions:
                     start_time="2022-01-01T08:05:00+00:00",
                     stop_time="2022-01-01T08:11:00+00:00",
                 )
-            ]
+            ],
+            meter=Meter()
         )
 
         transaction_config_b = TransactionConfig(
@@ -160,7 +173,8 @@ class TestTransctions:
                     start_time="2022-01-01T13:00:00+00:00",
                     stop_time="2022-01-01T13:06:00+00:00"
                 )
-            ]
+            ],
+            meter=Meter()
         )
         transactions_storage = Transactions()
         transactions_storage.add_transactions([transaction_config_b, transaction_config_a])

@@ -13,13 +13,14 @@ from transactions import Transactions
 from generator_config import ChargePointConfiguration, ChargePointTransactionConfig
 from dateutil import parser
 from datetime import timedelta
-
+from meter import Meter
 
 class ChargePoint:
     def __init__(self,
                  transactions_storage: Transactions,
                  event_collector: EventCollector,
-                 config: ChargePointConfiguration):
+                 config: ChargePointConfiguration,
+                 meter: Meter):
         self.transactions_storage = transactions_storage
         self.event_collector = event_collector
         self.model = config.model
@@ -28,12 +29,14 @@ class ChargePoint:
         self.on_time = config.on_time
         self.off_time = config.off_time
         self.transactions_config = config.transactions
+        self.meter = meter
 
     def _build_transactions(self):
         collect = []
         for c in self.transactions_config:
             collect = collect + [TransactionConfig(
                 charge_point_id=self.serial_number,
+                meter=self.meter,
                 **c.__dict__
             )]
 
