@@ -184,22 +184,23 @@ class TestTransctions:
         last_transaction = result[1]
         assert len(last_transaction) == 16
         assert [(x.message_type, x.action, x.write_timestamp) for x in last_transaction] == [
-            (MessageType.request, "StartTransaction", "2022-01-01T13:00:01+00:00"),
-            (MessageType.successful_response, "StartTransaction", "2022-01-01T13:00:02+00:00"),
-            (MessageType.request, "StatusNotification", "2022-01-01T13:00:03+00:00"),
-            (MessageType.successful_response, "StatusNotification", "2022-01-01T13:00:04+00:00"),
-            (MessageType.request, "StatusNotification", "2022-01-01T13:00:04+00:00"),
-            (MessageType.successful_response, "StatusNotification", "2022-01-01T13:00:05+00:00"),
-            (MessageType.request, "MeterValues", "2022-01-01T13:00:06+00:00"),
-            (MessageType.request, "MeterValues", "2022-01-01T13:05:06+00:00"),
-            (MessageType.successful_response, "MeterValues", "2022-01-01T13:00:07+00:00"),
-            (MessageType.successful_response, "MeterValues", "2022-01-01T13:05:07+00:00"),
-            (MessageType.request, "StatusNotification", "2022-01-01T13:06:00+00:00"),
-            (MessageType.successful_response, "StatusNotification", "2022-01-01T13:06:01+00:00"),
-            (MessageType.request, "StopTransaction", "2022-01-01T13:06:00+00:00"),
-            (MessageType.successful_response, "StopTransaction", "2022-01-01T13:06:01+00:00"),
-            (MessageType.request, "StatusNotification", "2022-01-01T13:06:02+00:00"),
-            (MessageType.successful_response, "StatusNotification", "2022-01-01T13:06:03+00:00")
+            (MessageType.request, 'StartTransaction', '2022-01-01T13:00:01+00:00'),
+            (MessageType.successful_response, 'StartTransaction', '2022-01-01T13:00:02+00:00'),
+            (MessageType.request, 'StatusNotification', '2022-01-01T13:00:03+00:00'),
+            (MessageType.successful_response, 'StatusNotification', '2022-01-01T13:00:04+00:00'),
+            (MessageType.request, 'MeterValues', '2022-01-01T13:00:06+00:00'),
+            (MessageType.request, 'MeterValues', '2022-01-01T13:05:06+00:00'),
+            (MessageType.successful_response, 'MeterValues', '2022-01-01T13:00:07+00:00'),
+            (MessageType.successful_response, 'MeterValues', '2022-01-01T13:05:07+00:00'),
+            (MessageType.request, 'StatusNotification', '2022-01-01T13:00:04+00:00'),
+            (MessageType.successful_response, 'StatusNotification', '2022-01-01T13:00:05+00:00'),
+            (MessageType.request, 'StatusNotification', '2022-01-01T13:06:00+00:00'),
+            (MessageType.successful_response, 'StatusNotification', '2022-01-01T13:06:01+00:00'),
+            (MessageType.request, 'StopTransaction', '2022-01-01T13:06:00+00:00'),
+            (MessageType.successful_response, 'StopTransaction', '2022-01-01T13:06:01+00:00'),
+            (MessageType.request, 'StatusNotification', '2022-01-01T13:06:02+00:00'),
+            (MessageType.successful_response, 'StatusNotification', '2022-01-01T13:06:03+00:00')
         ]
+
         assert last_transaction[-4].__dict__["body"]["transaction_id"] == 2
         assert transactions_storage.played is True

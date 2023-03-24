@@ -195,9 +195,12 @@ class Transaction:
 
             return collect
 
+
+
+        collect_all = collect_all + _pulse_meter_values(delay_seconds=6, start_time=self.start_time, stop_time=self.stop_time)
+
         for s in self.sessions:
             collect_all = collect_all + _pulse_status_notification_charging(delay_seconds=4, start_time=s.start_time)
-            collect_all = collect_all + _pulse_meter_values(delay_seconds=6, start_time=s.start_time, stop_time=s.stop_time)
             collect_all = collect_all + _pulse_status_notification_pausing(delay_seconds=0, start_time=s.stop_time)
 
         return collect_all
@@ -234,11 +237,14 @@ class Transaction:
         return round(base + noise, 2)
 
     def _meter_values_request(self, **kwargs):
-        noisy_power_import = self._add_noise(20.0, kwargs["power_import"])
-        noisy_current_import = self._add_noise(2.0, 6.0)
-        power_import = float(noisy_power_import)
-        self._increase_meter(power_import=float(noisy_power_import))
-        self.transaction_meter = self.transaction_meter + power_import
+        power_import = 0.0
+        current_import = 0.0
+        current_time_within_session = any([parser.parse(x.stop_time) >= parser.parse(kwargs["timestamp"]) >= parser.parse(x.start_time) for x in self.sessions])
+        if current_time_within_session:
+            power_import = float(self._add_noise(20.0, kwargs["power_import"]))
+            current_import = float(self._add_noise(2.0, 6.0))
+            self._increase_meter(power_import=power_import)
+            self.transaction_meter = self.transaction_meter + power_import
         sampled_values = [
             SampledValue(
                 context=ReadingContext.sample_periodic,
@@ -254,7 +260,7 @@ class Transaction:
                 measurand=Measurand.current_import,
                 phase=Phase.l1,
                 unit=UnitOfMeasure.a,
-                value=str(noisy_current_import),
+                value=str(current_import),
             ),
             SampledValue(
                 context=ReadingContext.sample_periodic,
@@ -262,7 +268,7 @@ class Transaction:
                 measurand=Measurand.power_active_import,
                 phase=Phase.l1,
                 unit=UnitOfMeasure.w,
-                value=str(noisy_power_import),
+                value=str(power_import),
             ),
             SampledValue(
                 context=ReadingContext.sample_periodic,
@@ -320,14 +326,14 @@ class Transaction:
                 value=str(self.transaction_meter)
             ),
             SampledValue(
-                value=str(noisy_current_import),
+                value=str(current_import),
                 context=ReadingContext.sample_periodic,
                 format=ValueFormat.raw,
                 measurand=Measurand.current_import,
                 unit=UnitOfMeasure.a
             ),
             SampledValue(
-                value=str(noisy_power_import),
+                value=str(power_import),
                 context=ReadingContext.sample_periodic,
                 format=ValueFormat.raw,
                 measurand=Measurand.power_active_import,
