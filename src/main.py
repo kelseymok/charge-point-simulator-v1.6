@@ -18,10 +18,10 @@ def write_events(events):
     df = pd.DataFrame.from_records(events)
     df["write_timestamp_epoch"] = pd.to_datetime(df["write_timestamp"])
     df.sort_values(by="write_timestamp_epoch", inplace=True)
-    df.to_json(f"../out/{now}.json", orient="records")
-    df.to_csv(f"../out/{now}.csv", index=False, escapechar="\\", doublequote=False)
-    df.to_parquet(f"../out/{now}.parquet")
-    write_deltalake(f'../out/{now}/delta', df, partition_by=["action", "message_type", "charge_point_id"], mode='append')
+    df.to_json(f"../out/{now}.json", orient="records", compression="gzip")
+    df.to_csv(f"../out/{now}.csv", index=False, escapechar="\\", doublequote=False, compression="gzip")
+    df.to_parquet(f"../out/{now}.parquet", compression="gzip")
+    write_deltalake(f'../out/{now}_delta', df, partition_by=["action", "message_type", "charge_point_id"], mode='append')
 
 
 async def main():

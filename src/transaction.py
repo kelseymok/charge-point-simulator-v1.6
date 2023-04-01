@@ -18,14 +18,14 @@ from meter import Meter
 
 
 class Transaction:
-    def __init__(self, id: int, connector: int, charge_point_id: str, start_time: str, stop_time: str, sessions: List[TransactionSessionConfig], meter: Meter, id_tag: str=str(uuid.uuid4())):
+    def __init__(self, id: int, connector: int, charge_point_id: str, start_time: str, stop_time: str, sessions: List[TransactionSessionConfig], meter: Meter, id_tag: str = None):
         self.charge_point_id = charge_point_id
         self.connector = connector
         self.transaction_id = id
         self.transaction_meter = 0
         self.start_time = start_time
         self.stop_time = stop_time
-        self.id_tag = id_tag
+        self.id_tag = str(uuid.uuid4()) if id_tag is None else id_tag
         self.sessions = sessions
         self.meter = meter
 

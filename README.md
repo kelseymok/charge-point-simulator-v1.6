@@ -9,3 +9,6 @@ This repository generates Charge Point data with the following specs:
   * StartTransaction
   * MeterValues (every 5 minutes)
   * StopTransaction
+
+## Issues
+- [ ] Why are we getting the same id_tag for all transactions?

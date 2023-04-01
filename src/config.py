@@ -9,11 +9,11 @@ vendor = "ChargeAwesome LLC"
 
 
 def on_time():
-    return datetime(2023, 1, 1, 8, random.randint(0, 59), random.randint(0, 59), random.randint(0, 59), tzinfo=timezone.utc)
+    return datetime(2023, month=1, day=1, hour=8, minute=random.randint(0, 59), second=random.randint(0, 59), microsecond=random.randint(0, 59), tzinfo=timezone.utc)
 
 
 def off_time():
-    return datetime(2023, 1, 6, 23, random.randint(0, 59), random.randint(0, 59), random.randint(0, 59), tzinfo=timezone.utc)
+    return datetime(2023, month=6, day=1, hour=23, minute=random.randint(0, 59), second=random.randint(0, 59), microsecond=random.randint(0, 59), tzinfo=timezone.utc)
 
 
 def add_hour_variation(a: datetime):
