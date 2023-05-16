@@ -4,3 +4,4 @@ freezegun
 fastparquet
 pytest
 deltalake
+pyspark
